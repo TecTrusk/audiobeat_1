@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeatSync Master</title>
+    <style>
+        body { background: #121212; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #00e676; }
+        button { background: #00e676; color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 20px; }
+        #status { margin-top: 20px; font-weight: bold; color: #00e676; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>BeatSync Master</h2>
+        <p>Sube el MP3 del trackbeat</p>
+        <form id="uploadForm">
+            <input type="file" id="audioFile" accept="audio/mpeg" required style="color: #aaa;">
+            <button type="submit" id="btn">ENVIAR A RASPBERRY</button>
+        </form>
+        <div id="status"></div>
+    </div>
+    <script>
+        const form = document.getElementById('uploadForm');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            document.getElementById('status').innerText = "Procesando...";
+            const formData = new FormData();
+            formData.append('file', document.getElementById('audioFile').files[0]);
+            const response = await fetch('/analizar', { method: 'POST', body: formData });
+            const result = await response.json();
+            document.getElementById('status').innerText = result.info || result.detalle;
+        };
+    </script>
+</body>
+</html>

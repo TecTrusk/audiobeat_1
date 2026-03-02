@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+librosa
+paho-mqtt
+python-multipart
+numpy
+gunicorn
+soundfile
+audioread
