@@ -8,8 +8,7 @@ from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
-# --- CONFIGURACIÓN DE VARIABLES (Se deben cargar en el panel de Render) ---
-# Estas variables permiten que el código sea público pero tus datos privados
+
 MQTT_HOST = os.getenv("MQTT_HOST")
 MQTT_USER = os.getenv("MQTT_USER")
 MQTT_PASS = os.getenv("MQTT_PASS")
@@ -25,21 +24,20 @@ async def home():
 @app.post("/analizar")
 async def analizar_beats(file: UploadFile = File(...)):
     """Procesa el MP3 y envía los timestamps de los beats"""
-    # 1. Crear nombre de archivo temporal único
+ 
     file_id = str(uuid.uuid4())
     file_location = f"temp_{file_id}.mp3"
     
     try:
-        # 2. Guardar el archivo MP3 recibido en el disco del servidor
+       
         content = await file.read()
         with open(file_location, "wb") as f:
             f.write(content)
         
-        # 3. ANALISIS DE AUDIO: Cargar MP3 con Librosa
-        # Usamos sr=None para mantener la velocidad de muestreo original del archivo
+     
         y, sr = librosa.load(file_location, sr=None)
         
-        # 4. DETECCIÓN DE PICOS (Onsets): Detecta los ataques bruscos de sonido (los clicks)
+ 
         onset_env = librosa.onset.onset_strength(y=y, sr=sr)
         peaks = librosa.util.peak_pick(
             onset_env, 
@@ -47,17 +45,16 @@ async def analizar_beats(file: UploadFile = File(...)):
             delta=0.5, wait=10
         )
         
-        # Convertir los marcos (frames) detectados a segundos exactos
         beat_times = librosa.frames_to_time(peaks, sr=sr).tolist()
         
-        # 5. MENSAJERÍA: Preparar JSON y enviar a la nube
+    
         payload = json.dumps({
             "nombre_archivo": file.filename,
             "total_beats": len(beat_times),
             "beats": [round(b, 3) for b in beat_times]
         })
 
-        # Configuración del cliente MQTT para HiveMQ Cloud
+    
         client = mqtt.Client()
         client.username_pw_set(MQTT_USER, MQTT_PASS)
         client.tls_set() # Render requiere TLS para conectar a brokers en la nube
@@ -76,4 +73,5 @@ async def analizar_beats(file: UploadFile = File(...)):
     finally:
         # Limpieza técnica: Borrar el MP3 para no agotar el almacenamiento de Render
         if os.path.exists(file_location):
+
             os.remove(file_location)
