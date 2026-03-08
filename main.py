@@ -42,10 +42,11 @@ async def analizar_y_descargar(file: UploadFile = File(...)):
         )
 
     except Exception as e:
+        print(f"ERROR CRÍTICO: {str(e)}") # Esto hará que aparezca en los LOGS de Render
         return {"error": str(e)}
-    
     finally:
         # Limpieza de archivos temporales después de la respuesta
         if os.path.exists(audio_path): os.remove(audio_path)
         # Nota: El TXT se borra idealmente con un BackgroundTask, 
         # pero para esta prueba lo dejaremos así.
+
