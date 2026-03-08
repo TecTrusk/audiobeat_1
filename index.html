@@ -3,36 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeatSync Master</title>
+    <title>Beat Extractor</title>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .card { background: #1e1e1e; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { color: #00e676; }
-        button { background: #00e676; color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 20px; }
-        #status { margin-top: 20px; font-weight: bold; color: #00e676; }
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 15px; margin-top: 50px; }
+        button { background: #00e676; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>BeatSync Master</h2>
-        <p>Sube el MP3 del trackbeat</p>
-        <form id="uploadForm">
-            <input type="file" id="audioFile" accept="audio/mpeg" required style="color: #aaa;">
-            <button type="submit" id="btn">ENVIAR A RASPBERRY</button>
-        </form>
-        <div id="status"></div>
+        <h2>Extractor de Tiempos</h2>
+        <p>Sube el MP3 y descarga el .txt</p>
+        <input type="file" id="audioFile" accept="audio/mpeg">
+        <br><br>
+        <button onclick="procesar()">GENERAR Y DESCARGAR TXT</button>
+        <p id="status"></p>
     </div>
+
     <script>
-        const form = document.getElementById('uploadForm');
-        form.onsubmit = async (e) => {
-            e.preventDefault();
+        async function procesar() {
+            const fileInput = document.getElementById('audioFile');
+            if (fileInput.files.length === 0) return alert("Selecciona un archivo");
+
             document.getElementById('status').innerText = "Procesando...";
             const formData = new FormData();
-            formData.append('file', document.getElementById('audioFile').files[0]);
+            formData.append('file', fileInput.files[0]);
+
             const response = await fetch('/analizar', { method: 'POST', body: formData });
-            const result = await response.json();
-            document.getElementById('status').innerText = result.info || result.detalle;
-        };
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "tiempos_beat.txt";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                document.getElementById('status').innerText = "¡Descarga lista!";
+            } else {
+                document.getElementById('status').innerText = "Error en el servidor.";
+            }
+        }
     </script>
 </body>
 </html>
