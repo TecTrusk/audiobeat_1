@@ -24,7 +24,8 @@ async def analizar_y_descargar(file: UploadFile = File(...)):
             f.write(content)
         
         # 2. Procesar con Librosa
-        y, sr = librosa.load(audio_path, sr=None)
+        # Por esta (fuerza la conversión a mono):
+        y, sr = librosa.load(audio_path, sr=None, mono=True)
         onset_env = librosa.onset.onset_strength(y=y, sr=sr)
         peaks = librosa.util.peak_pick(onset_env, pre_max=3, post_max=3, pre_avg=3, post_avg=5, delta=0.5, wait=10)
         beat_times = librosa.frames_to_time(peaks, sr=sr)
@@ -49,4 +50,5 @@ async def analizar_y_descargar(file: UploadFile = File(...)):
         if os.path.exists(audio_path): os.remove(audio_path)
         # Nota: El TXT se borra idealmente con un BackgroundTask, 
         # pero para esta prueba lo dejaremos así.
+
 
